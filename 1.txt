@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+/// https://codeforces.com/gym/103999/submission/260514159
+/// https://codeforces.com/gym/103999/problem/M
+/// Interesting Minimums
+
+int main(){
+    using namespace std;
+    cin.tie(0); cout.tie(0);
+    ios_base::sync_with_stdio(0);
+
+    int n;
+    cin>>n;
+    vector<int> v;
+    for(int i=0;i<n;i++){
+        int x;
+        cin>>x;
+        v.push_back(x);
+    }
+    int *leftMin = new int[n + 2],*rightMin = new int[n + 2];
+
+    /// calculate closest position with element smaller (or equal!) to the right
+    stack<int> stk;
+    for(int i= 0;i <n;i++){
+
+        while(!stk.empty() && v[i] <= v[stk.top()]){
+            rightMin[stk.top()] = i;
+            stk.pop();
+        }
+        stk.push(i);
+    }
+    while(stk.size()){
+        rightMin[stk.top()] = n;
+        stk.pop();
+    }
+
+    /// calculate closest position with element smaller to the left
+    for(int i= n-1;i >=0;i--){
+
+        while(!stk.empty() && v[i] < v[stk.top()]){
+            leftMin[stk.top()] = i;
+            stk.pop();
+        }
+        stk.push(i);
+    }
+    while(stk.size()){
+        leftMin[stk.top()] = -1;
+        stk.pop();
+    }
+
+    /// calculate result for with i being the minimum in a sequence.
+    long long result = 0;
+    for(int i=0;i <n;i++){
+        int leftDist = i - leftMin[i] - 1;
+        int rightDist = std::min(leftDist,rightMin[i] - i);
+        result += 1LL * (leftDist + leftDist - rightDist + 1) * (rightDist) /2; /// leftDist + leftDist-1 + ... + leftDist -rightDist + 1
+    }
+    std::cout << result;
+    delete[] leftMin;
+    delete[] rightMin;
+}

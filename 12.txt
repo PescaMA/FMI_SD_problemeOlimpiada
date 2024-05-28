@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define int long long
+
+/// https://infoarena.ro/problema/kami
+/// https://infoarena.ro/job_detail/3231133
+
+class sqrtDecomp{
+    int sz;
+    struct infoNode{
+        long long totalSum;
+        int minReq;
+    };
+    vector<infoNode> parts; /// the sqrt(n) parts of size sqrt(n)
+public:
+    sqrtDecomp(const vector<int> & v){
+        sz = sqrt(v.size());
+        parts.reserve(sz + 5); /// 5 more to be sure
+        for(size_t i= 0; i < v.size(); i+= sz){
+            parts.push_back({0,0});
+            calculate(v,i);
+        }
+        ///print();
+    }
+    void calculate(const vector<int> & v, int pos){
+        int part = pos / sz;
+        int minPosV = part * sz;
+        int maxPosV = std::min((part+1)*sz, (int)v.size())-1;
+        parts[part] = {v[maxPosV],v[maxPosV] + 1};
+
+
+
+        long long sum = 2 * v[maxPosV] + 1;
+        for(int i = maxPosV-1;i >= minPosV;i--){
+            parts[part].totalSum +=v[i];
+            if(v[i] >= sum){
+                parts[part].minReq += v[i] - sum + 1;
+                sum = 2 * v[i] + 1;
+            }
+            else
+                sum += v[i];
+        }
+    }
+    int query(const vector<int> & v, int pos){
+
+        int part = pos/sz;
+        long long sum = v[pos--];
+        while(pos >= part * sz){
+            if(v[pos] >= sum)
+                return pos + 1;
+            sum+=v[pos];
+            pos--;
+        }
+
+        --part;
+        while(part >= 0 && parts[part].minReq <= sum){
+            sum+= parts[part].totalSum;
+            --part;
+        }
+        if(part < 0)
+            return 0;
+
+        pos = std::min((part+1)*sz, (int)v.size())-1;
+        while(pos >= 0 && v[pos] < sum){
+            sum += v[pos];
+            pos--;
+        }
+        if(pos < 0)
+            exit(-1);
+        return pos + 1;
+    }
+    void print(){
+        cout << parts.size();
+        for(size_t i=0;i<parts.size();i++){
+            cout << i << ' ' << parts[i].minReq << ' ' << parts[i].totalSum << '\n';
+        }
+    }
+};
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("kami.in");
+std::ofstream fout("kami.out");
+#endif
+int32_t main()
+{
+    int n,q;
+    fin >> n;
+    vector<int> v;
+    while(n--){
+        int x; fin >> x;
+        v.push_back(x);
+    }
+    sqrtDecomp sol(v);
+    ///sol.print();
+
+
+
+    fin >> q;
+    while(q--)
+    {
+        int tip,a,b;
+
+        fin >> tip >> a;
+        a--;
+        if(tip == 0){
+            fin >> b;
+            v[a] = b;
+            sol.calculate(v,a);
+        }
+        if(tip == 1){
+            fout << sol.query(v,a) << '\n';
+        }
+
+    }
+}

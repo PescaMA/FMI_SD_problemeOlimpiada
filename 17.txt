@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int long long
+
+/// H. for-for-for-for (max (a^b) * (c+d))
+/// https://codeforces.com/gym/103999/problem/H
+/// https://codeforces.com/gym/103999/submission/262935673
+
+class Trie{
+    struct Node{
+        Node *left = NULL,*right = NULL;
+        static Node& go(Node* &node){
+            if(node == NULL)
+                node = new Node;
+            return *node;
+        }
+        Node& goLeft(){return go(left);}
+        Node& goRight(){return go(right);}
+    }root;
+public:
+    void add(int x){
+        unsigned mask = (1<<31);
+        Node* currentNode = &root;
+        while(mask > 0){
+            if(mask & x)
+                currentNode = &currentNode->goRight();
+            else
+                currentNode = &currentNode->goLeft();
+            mask>>=1;
+        }
+    }
+    int query(int x){
+        unsigned mask = (1<<31);
+        Node currentNode = root;
+        int result = 0;
+        while(mask > 0){
+            if(mask & x){
+                if(currentNode.left != NULL){
+                    currentNode = currentNode.goLeft();
+                    result |= mask;
+                }
+                else
+                    currentNode = currentNode.goRight();
+            }
+            else{
+                if(currentNode.right != NULL){
+                    currentNode = currentNode.goRight();
+                    result |= mask;
+                }
+                else
+                    currentNode = currentNode.goLeft();
+            }
+            mask>>=1;
+        }
+        return result;
+    }
+};
+
+int32_t main(){
+    int n;
+    cin >> n;
+    if(n < 4){
+        std::cout << 0;
+        return 0;
+    }
+    vector<int> v;
+    for(int i =0; i< n;i++){
+        int x; cin >> x;
+        v.push_back(x);
+    }
+
+    long long result = 0;
+
+
+    int mx = std::max(v[n-1],v[n-2]);
+    int mx2 = std::min(v[n-1],v[n-2]);
+
+    /// Calculate best sum of 2 elements starting from i;
+    vector<int> bestSum(n);
+    bestSum[n-2] = mx + mx2;
+    for(int i = n-3;i>=0;i--){
+        if(v[i] > mx){
+            mx2 = mx;
+            mx = v[i];
+        }
+        else if(v[i] > mx2){
+            mx2 = v[i];
+        }
+        bestSum[i] = mx + mx2;
+    }
+
+    int bestXor = 0;
+    Trie trie;
+    for(int i = 0;i<n-2;i++){
+        trie.add(v[i]);
+        bestXor = std::max(bestXor,trie.query(v[i]));
+        result = std::max(result, bestXor * 1LL * bestSum[i+1]);
+    }
+    std::cout << result;
+}

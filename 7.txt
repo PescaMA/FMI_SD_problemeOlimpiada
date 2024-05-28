@@ -1,0 +1,97 @@
+/// acest cod este evident si nu necesita explicatie.!
+/// sirbun <3
+/// https://kilonova.ro/problems/556
+/// https://kilonova.ro/submissions/376133
+#include <bits/stdc++.h>
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("sirbun.in");
+std::ofstream fout("sirbun.out");
+#endif
+#define int unsigned long long
+
+
+int const N = 100005;
+struct AIB{
+    int v[N];
+    static int inline p2(int val){
+        return (val & (-val));
+    }
+    void add(int pos,int val = 1){
+        for(int i=pos;i <N;i+=p2(i)){
+            v[i]+=val;
+        }
+    }
+    int sum(int pos){
+        int result = 0;
+        for(int i=pos;i>0;i-=p2(i)){
+            result+=v[i];
+        }
+        return result;
+    }
+};
+bool nebun(AIB& aib){ /// adding x makes invalid
+    int p2 = 1;
+    while(p2 < N){
+        if(aib.sum(p2) > (p2>>1)){ /// check for possible problem
+            int p2bk = p2;
+            if(aib.sum(p2bk) > p2bk)
+                    return true;
+            int put2 = (p2>>2);
+            while(put2 >= 1){
+                p2bk -= put2;
+                if(aib.sum(p2bk) > p2bk)
+                    return true;
+                put2>>=1;
+            }/// 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+        }
+        p2 <<=1;
+    }
+    p2 = 1;
+    while(p2 < N){
+        if(aib.sum(p2) > (p2>>1)){ /// check for possible problem
+            int p2bk = p2 - (p2>>2);
+            if(aib.sum(p2bk) > p2bk)
+                    return true;
+            int put2 = (p2>>3);
+            while(put2 >= 1){
+                p2bk += put2;
+                if(aib.sum(p2bk) > p2bk)
+                    return true;
+                put2>>=1;
+            }/// 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+        }
+        p2 <<=1;
+    }
+    return false;
+}
+
+int32_t main(){
+    using namespace std;
+
+    int n;
+    fin >> n;
+
+    vector<int> v;
+    AIB aib;
+    for(int i=0;i<n;i++){
+        int x;
+        fin >> x;
+        v.push_back(x);
+    }
+    int st = 0,dr = 0;
+    int result = 0;
+    while(st < n && dr < n){
+        aib.add(v[dr]);
+        while(nebun(aib)){
+            aib.add(v[st],-1);
+            st++;
+        }
+        ///std::cout << st << ' ' << dr << '\n';
+        result+=dr-st + 1;
+        dr++;
+    }
+    fout << result;
+}

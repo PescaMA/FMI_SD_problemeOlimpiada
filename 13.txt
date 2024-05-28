@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/// https://www.infoarena.ro/problema/stramosi
+/// https://www.infoarena.ro/job_detail/3231144
+
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("stramosi.in");
+std::ofstream fout("stramosi.out");
+#endif
+
+class Pow2{
+    vector<vector<int> > ancestor;
+public:
+    Pow2(const std::vector<int>& v){
+        ancestor.resize(v.size() + 1);
+        ancestor[0].resize(33);
+        ancestor[0][0]= 0 ;
+        for(size_t i = 0; i< v.size(); i++){
+             ancestor[i+1].resize(33);
+             ancestor[i+1][0] = v[i];
+        }
+
+        for(int j = 1;j < 33; j++){
+            for(size_t i = 1; i <= v.size(); i++){
+                ancestor[i][j] = ancestor [ancestor[i][j-1]][j-1];
+            }
+        }
+    }
+    int query(int node,long long k){
+        int result = node;
+        for(long long  j = 0;j < 33; j++){
+            if((1LL<<j)&k)
+                result = ancestor[result][j];
+        }
+        return result;
+    }
+};
+
+int result(int node){
+    return 0;
+}
+
+int32_t main()
+{
+    int n,q;
+    fin >> n >> q;
+    vector<int> v;
+    while(n--){
+        int x; fin >> x;
+        v.push_back(x);
+    }
+    Pow2 ancestorPow2(v);
+    while(q--)
+    {
+        int x, y;
+        fin >> x >> y;
+        fout << ancestorPow2.query(x,y)<< '\n';
+    }
+}

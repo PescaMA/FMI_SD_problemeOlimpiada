@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("pikachu.in");
+std::ofstream fout("pikachu.out");
+#endif
+
+/// (iar sunt testele proaste :))))
+/// https://infoarena.ro/problema/pikachu
+/// https://infoarena.ro/job_detail/3231052
+
+
+long long cost(vector<int> &v,int k, int chosenHeight){
+    long long dif = 0, result = (1LL<<50);
+    for(int i =0; i < k; i++){
+        dif += abs(v[i] - chosenHeight);
+    }
+    for(size_t i = k; i<v.size();i++){
+        result = min(result,dif);
+        dif-= abs(v[i-k] - chosenHeight);
+        dif+= abs(v[i] - chosenHeight);
+    }
+    return min(result,dif);
+}
+
+int32_t main()
+{
+    int n,k;
+    vector<int> v;
+    fin >> n >> k;
+    int x,mx = 0;
+    for(int i=0;i<n;i++){
+        fin >> x;v.push_back(x);
+        mx = max(x,mx);
+    }
+
+    /// binary search the height. Solution O(n log(mx))
+
+    long long val = 0;
+    long long result = (1LL<<50);
+    for(long long  i=(1LL <<32);i >0; i>>=1){
+        if(i + val <= mx ){
+            long long leftCost = cost(v,k,i+val - 1);
+            long long rightCost = cost(v,k, i+val + 1);
+            if(leftCost > rightCost)
+                val+=i;
+            result = min({leftCost,rightCost,result});
+        }
+    }
+    fout << result;
+
+}

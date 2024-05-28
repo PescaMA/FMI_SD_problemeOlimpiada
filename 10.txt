@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+/// Goal Statistics
+/// https://kilonova.ro/problems/960
+/// https://kilonova.ro/submissions/380340
+
+class AINT{
+    static int const N = 1e6+5;
+    struct node{
+        int freq = 0;
+        long long sum = 0;
+        void operator+=(long long val){
+            sum+=val;
+            freq++;
+        }
+        node operator+(const node& other){
+            node result;
+            result.sum = this->sum + other.sum;
+            result.freq = this->freq + other.freq;
+            return result;
+        }
+    }*aint;
+    int n;
+public:
+    AINT(int len = N){
+        n = len;
+        aint = new node[3*n + 5]; /// 4*n gave memory limit exceeded!
+    }
+
+    void add(int pos,long long val,int l = 0,int r = -5, int node = 1){
+        if(r == -5) r = n-1;
+        if(l == r){
+            aint[node] += val;
+            return;
+        }
+        int mid = (l+r)>>1;
+        if(pos > mid)
+            add(pos,val,mid+1,r,(node<<1) + 1);
+        else
+            add(pos,val,l,mid,(node<<1));
+        aint[node] = aint[(node<<1)] + aint[(node<<1) + 1];
+    }
+    long long query(int freq, int l = 0,int r = -5,int node =1){
+        if(r == -5) r = n-1;
+        if(l == r)
+            return aint[node].sum / max(aint[node].freq,1) * freq;
+        int mid = (l+r)>>1;
+        if(aint[node << 1].freq < freq)
+            return aint[node<<1].sum + query(freq - aint[node<<1].freq,mid+1,r,(node<<1)+1);
+        else
+            return query(freq,l,mid,(node<<1));
+    }
+    ~AINT(){
+        delete[] aint;
+    }
+};
+
+
+
+int32_t main()
+{
+    cin.tie(0);cout.tie(0);
+    ios_base::sync_with_stdio(false);
+    int q;
+    AINT aint;
+    cin >> q;
+    while(q--){
+        int type, val;
+        cin >> type >> val;
+        if(type == 1)
+            aint.add(val,val);
+        if(type == 2)
+            std::cout << aint.query(val) << '\n';
+    }
+}

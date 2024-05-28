@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+/// https://codeforces.com/gym/103999/submission/260593795
+/// https://codeforces.com/gym/103999/problem/I
+/// Dacians vs Samurai
+
+int main(){
+    using namespace std;
+    /*cin.tie(0); cout.tie(0);
+    ios_base::sync_with_stdio(0);*/
+
+    int n;
+    cin>>n;
+    vector<pair<int,int>> v;
+    vector<int>freq(n,0);
+    for(int i=0;i<n;i++){
+        int x,y;
+        cin>>x >> y;
+        v.push_back({x,i});
+        v.push_back({y,i});
+    }
+    sort(v.begin(),v.end());
+
+    int left = 0;
+    int uniqueIndexes = 0;
+    int result = INT_MAX;
+    for(unsigned i = 0;i < v.size();i++){
+        int val = v[i].first;
+        int index = v[i].second;
+        freq[index]++;
+        if(freq[index] == 1){
+            uniqueIndexes++;
+        }
+        while(uniqueIndexes == n){
+            int valLeft = v[left].first;
+            int indexLeft = v[left].second;
+            result = std::min(result,val - valLeft);
+            freq[indexLeft]--;
+            if(freq[indexLeft] == 0)
+                uniqueIndexes--;
+            left++;
+            ///std::cout << i << ' ' << left << ' ' <<result << '\n';
+        }
+    }
+    std::cout << result;
+}

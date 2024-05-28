@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+
+/// https://www.infoarena.ro/job_detail/3230084
+/// https://www.infoarena.ro/problema/proc2
+
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("proc2.in");
+std::ofstream fout("proc2.out");
+#endif
+
+int main(){
+    using namespace std;
+    int n, q;
+    fin >> n >> q;
+
+    vector<pair<int,int> > v;
+    priority_queue<pair<int,int>,vector<pair<int,int> >,greater<pair<int,int> > > pq;
+    /// heap 1 of currently unreachable processors
+
+    priority_queue<int,vector<int>, greater<int> > reachable;
+    /// heap 1 of reachable processors
+
+    for(int i = 1;i <= n;i++){
+        reachable.push(i);
+    }
+    for(int i=0;i<q;i++){
+        int strt, timp;
+        fin >> strt>> timp;
+        v.push_back({strt,timp});
+    }
+    sort(v.begin(),v.end());
+
+    for(int i=0;i<q;i++){
+        while(!pq.empty() && pq.top().first <= v[i].first){
+            reachable.push(pq.top().second);
+            pq.pop();
+        }
+        fout << reachable.top() << '\n';
+        pq.push({v[i].first + v[i].second, reachable.top()});
+        reachable.pop();
+    }
+}

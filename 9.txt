@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+using namespace std;
+/// Panama Sum
+/// https://kilonova.ro/problems/304
+/// https://kilonova.ro/submissions/381248
+class AINT{
+    static int const N = 1e5+5;
+    struct infoNode{
+        long long totalSum = 0, bestSum = 0 , prefixSum = 0,sufixSum = 0;
+        void operator=(long long val){
+            totalSum = bestSum = prefixSum = sufixSum = val;
+        }
+        infoNode operator+(const infoNode& other){
+            infoNode result;
+            result.totalSum = this->totalSum + other.totalSum;
+            result.prefixSum = std::max(this->prefixSum, this->totalSum + other.prefixSum);
+            result.sufixSum = std::max(other.sufixSum, other.totalSum + this->sufixSum);
+            result.bestSum = std::max({this->bestSum,other.bestSum, this->sufixSum + other.prefixSum});
+            return result;
+        }
+        ostream& print(ostream& out){
+            return out <<  prefixSum << ' ' <<  sufixSum << ' ' <<  bestSum << ' ' <<  totalSum << '\n';
+        }
+        friend ostream& operator<<(ostream&out,infoNode info){
+            return info.print(out);
+        }
+    }*aint;
+
+    int n;
+public:
+    AINT(int len = N){
+        n = len;
+        aint = new infoNode[4*n + 5];
+    }
+
+    void add(int pos,long long val,int l = 0,int r = -5, int node = 1){
+        if(r == -5) r = n-1;
+        if(l == r){
+            aint[node] = val;
+            return;
+        }
+        int mid = (l+r)>>1;
+        if(pos > mid)
+            add(pos,val,mid+1,r,(node<<1) + 1);
+        else
+            add(pos,val,l,mid,(node<<1));
+        aint[node] = aint[(node<<1)] + aint[(node<<1) + 1];
+    }
+    infoNode query(int lq,int rq, int l = 0,int r = -5,int node =1){
+
+        ///std::cout << lq << ' ' << rq << ' ' << l << ' ' << r << '\n';
+
+        if(r == -5) r = n-1;
+        if(rq < l || lq > r){
+            infoNode wrong;
+            wrong = -100LL;
+            return wrong;
+        }
+        if(l == r || (l >= lq && r <=rq))
+            return aint[node];
+
+
+        int mid = (l+r)>>1;
+        infoNode leftRes = query(lq,rq,l,mid,node<<1);
+        infoNode rightRes = query(lq,rq,mid+1,r,(node<<1) + 1);
+        ///std::cout << l <<' ' << r << ' ' << leftRes + rightRes << '\n';
+        return leftRes + rightRes;
+    }
+    void print(int l = 0,int r = -5, int node = 1){
+        if(r == -5) r = n-1;
+        std::cout << l << ' ' << r << ' ' << aint[node].prefixSum << ' ' << aint[node].sufixSum << ' ' << aint[node].bestSum << ' ' << aint[node].totalSum << '\n';
+
+
+        if(l == r){
+
+            return;
+        }
+        int mid = (l+r)>>1;
+        print(mid+1,r,(node<<1) + 1);
+        print(l,mid,(node<<1));
+    }
+    ~AINT(){
+        delete[] aint;
+    }
+};
+
+
+
+int32_t main()
+{
+    cin.tie(0);cout.tie(0);
+    ios_base::sync_with_stdio(false);
+    int n,q;
+    cin >> n >> q;
+    AINT aint1(n),aint2(n);
+    vector<int>v;
+    for(int i=0;i<n;i++){
+        int x;cin >> x;
+        v.push_back(x);
+        int aa = i%2?1:-1;
+        aint1.add(i,x * aa );
+        aint2.add(i,x * aa * -1);
+    }
+    ///aint1.print();
+    while(q--){
+        int type,a,b;
+        cin >> type >> a >> b;
+        if(type == 1){
+            a--;
+            int aa = a%2?1:-1;
+            aint1.add(a,b * aa);
+            aint2.add(a,b * aa * -1);
+        }
+        if(type == 2){
+            a--;b--;
+            std::cout << max(aint1.query(a,b).bestSum,
+                             aint2.query(a,b).bestSum) << '\n';
+        }
+    }
+}

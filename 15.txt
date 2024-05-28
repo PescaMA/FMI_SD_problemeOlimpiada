@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/// https://infoarena.ro/problema/plantatie
+/// https://infoarena.ro/job_detail/3231462?action=view-source
+
+template <class T>
+class RMQ2D{
+    std::vector< std::vector <std::vector<pair<int,int> > > > result; /// result[i][j][k] = minimum position of the next 2^i numbers starting from i,j.
+    std::vector<std::vector<T>> v;
+    bool (*cmp)(T,T);
+public:
+    static bool compare(T a,T b){
+        return a <= b;
+    }
+    RMQ2D(const std::vector<std::vector<T>>& input,bool (*cmp)(T,T) = compare):
+        cmp(cmp){
+        v = input;
+        if(input[0].empty())
+            throw std::runtime_error("Empty 2D RMQ array");
+        int n = input.size();
+        int m = input[0].size();
+        int logOfN = log2(std::min(n,m));
+        result.resize(logOfN + 1);
+        for (int i = 0; i < logOfN + 1; ++i) {
+            result[i].resize(n);
+            for (int j = 0; j < n; ++j) {
+                result[i][j].resize(m);
+            }
+        }
+        for(int j = 0; j<n; j++)
+            for(int k = 0; k<m; k++)
+                result[0][j][k] = {j,k};
+        int dif = 1;
+
+        for (int i = 1; i <= logOfN; i++){
+            for(int j = 0; j<n - dif; j++){
+                for(int k = 0;k < m - dif; k++){
+                    result[i][j][k] = result[i-1][j][k];
+                    setLeftPos(result[i][j][k],result[i-1][j+dif][k]);
+                    setLeftPos(result[i][j][k],result[i-1][j][k+dif]);
+                    setLeftPos(result[i][j][k],result[i-1][j+dif][k+dif]);
+                }
+            }
+            dif = (dif<<1);
+        }
+    }
+    void setLeftPos(std::pair<T,T>& x, const std::pair<T,T>& y){
+        if(cmp(v[x.first][x.second], v[y.first][y.second]))
+            x = y;
+    }
+    T getMin(std::pair<int,int> i,std::pair<int,int> j){
+        std::pair<int,int> pos = getMinPos(i,j);
+        return v[pos.first][pos.second];
+    }
+    std::pair<int,int> getMinPos(std::pair<int,int> x, std::pair<int,int> y){
+
+        if(x == y) return x;
+        if(x.first - y.first != x.second - y.second)
+            throw std::runtime_error("Not square matrix");
+
+        int i = log2(y.first - x.first), j1 = x.first, k1 = x.second;
+        int j2 = y.first, k2 = y.second;
+        int dif = (1<<i) - 1;
+        std::pair<int,int> res = result[i][j1][k1];
+        setLeftPos(res,result[i][j2 - dif][k1]);
+        setLeftPos(res,result[i][j1][k2 - dif]);
+        setLeftPos(res,result[i][j2 - dif][k2 - dif]);
+        return res;
+    }
+};
+
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("plantatie.in");
+std::ofstream fout("plantatie.out");
+#endif
+
+int32_t main()
+{
+    int n,q;
+    fin >> n >> q;
+
+    vector<vector<int>> v;
+    for(int i=0;i<n;i++){
+        v.push_back({});
+        for(int j=0;j<n;j++){
+            int x;
+            fin >> x;
+            v[i].push_back(x);
+        }
+    }
+    RMQ2D<int> rmq(v);
+
+    while(q--)
+    {
+        int i, j, side;
+        fin >> i >> j >> side;
+        i--;j--;side--;
+        fout << rmq.getMin({i,j},{i+side ,j+side }) << '\n';
+    }
+}

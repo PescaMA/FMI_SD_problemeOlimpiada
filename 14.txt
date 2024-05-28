@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/// https://www.pbinfo.ro/probleme/3860/consecutive1
+/// https://www.pbinfo.ro/detalii-evaluare/51131676
+
+template <class T>
+class RMQ{
+    std::vector<std::vector<int>> result; /// result[i][j] = minimum of the next 2^i numbers starting from j.
+    std::vector<T> v;
+    bool (*cmp)(T,T);
+public:
+    static bool compare(T a,T b){
+        return a <= b;
+    }
+    RMQ(const std::vector<T>& input,bool (*cmp)(T,T) = compare):
+        cmp(cmp){
+        v = input;
+        int n = input.size();
+        int logOfN = log2(n);
+        result.resize(logOfN + 1,std::vector<int>(n));
+
+        for(int j = 0; j<n; j++)
+            result[0][j] = j;
+        int dif = 1;
+        for (int i = 1; i <= logOfN; i++){
+            for(int j = 0; j<n - dif; j++){
+                if(cmp(input[result[i-1][j]],input[result[i-1][j+dif]]))
+                    result[i][j] = result[i-1][j];
+                else
+                    result[i][j] = result[i-1][j+dif];
+            }
+            dif = (dif<<1);
+        }
+    }
+    T getMin(int i,int j){
+        return v[getMinPos(i,j)];
+    }
+    int getMinPos(int i,int j){
+        if(i == j) return i;
+        int dif = log2(j - i);
+        if(cmp(v[result[dif][i]], v[result[dif][j - (1<<dif)+1]]))
+            return result[dif][i];
+        else
+            return result[dif][j - (1<<dif)+1];
+    }
+    void testQueries(){
+        for(unsigned i=0;i<result[0].size();i++){
+            for(unsigned j =i;j<result[0].size();j++){
+                std::cout << i << ' ' << j << ' '<< getMinPos(i,j) << '\n';
+            }
+        }
+    }
+    void testIntern(){
+        for (unsigned i = 0; i < result.size(); i++){
+            for(unsigned j = 0; j< result[i].size(); j++)
+                std::cout << result[i][j] << ' ';
+            std::cout << '\n';
+        }
+    }
+};
+
+vector<int> calcPrev(vector<int> v){
+    map<int,int> mp;
+    std::vector<int> posPrev(v.size(),-1);
+    for(size_t i = 0 ; i < v.size() ; i++){
+        if(mp.find(v[i]) != mp.end()){
+            posPrev[i] = mp[v[i]];
+        }
+        mp[v[i]] = i;
+    }
+    return posPrev;
+}
+
+vector<int> calcNext(vector<int> v){
+    map<int,int> mp;
+    std::vector<int> posNext(v.size(),v.size());
+    for(int i = (int)v.size()-1 ; i >= 0; i--){
+        if(mp.find(v[i]) != mp.end()){
+            posNext[i] = mp[v[i]];
+        }
+        mp[v[i]] = i;
+    }
+    return posNext;
+}
+
+
+struct InfoConsec{
+    int* leftQuery,*rightQuery;
+    RMQ<int> *mn,*mx,*mnNext,*mxPrev;
+    InfoConsec(int& l,int& r,RMQ<int>& mn,RMQ<int>&mx,RMQ<int>&mnNext,RMQ<int>&mxPrev):
+        leftQuery(&l),rightQuery(&r),mn(&mn),mx(&mx),mnNext(&mnNext),mxPrev(&mxPrev){}
+};
+/// careful to not copy each time.
+bool result(InfoConsec& info){
+    int l = *info.leftQuery - 1;
+    int r = *info.rightQuery - 1;
+    if((*info.mx).getMin(l,r) - (*info.mn).getMin(l,r) != r - l)
+        return false;
+    return (*info.mxPrev).getMin(l,r) < l &&
+     (*info.mnNext).getMin(l,r) > r;
+}
+
+int32_t main()
+{
+    cin.tie(0); cout.tie(0);
+    ios_base::sync_with_stdio(0);
+
+    int n,q;
+    cin >> n;
+    vector<int> v;
+    while(n--){
+        int x; cin >> x;
+        v.push_back(x);
+    }
+    RMQ<int> mn(v),mx(v,[](int x,int y){return x > y;});
+
+    RMQ<int> mxPrev(calcPrev(v),[](int x,int y){return x > y;}),mnNext(calcNext(v));
+
+
+    cin >> q;
+    while(q--)
+    {
+        int x, y;
+        cin >> x >> y;
+        InfoConsec info (x,y,mn,mx,mnNext,mxPrev);
+        cout << result(info);
+    }
+}

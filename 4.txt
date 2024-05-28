@@ -1,0 +1,46 @@
+#include <bits/stdc++.h>
+#ifdef fakeFILES
+std::ifstream fin("input.in");
+std::ofstream fout("input.out");
+#else
+std::ifstream fin("bleach.in");
+std::ofstream fout("bleach.out");
+#endif
+/// https://www.infoarena.ro/problema/bleach
+/// https://www.infoarena.ro/job_detail/3229435
+
+int main(){
+    using namespace std;
+
+
+    int n,k;
+    fin >> n >> k;
+
+    int result = 0;
+    long long sum = 0;
+    priority_queue<int,vector<int>, greater<int> > pq;
+    for(int i= 0;i<n;i++){
+        int x;
+        fin>>x;
+        pq.push(x);
+        if(pq.size() == (unsigned)k  + 1){
+            int mn = pq.top();
+            pq.pop();
+            if(sum < mn){
+                result += mn - sum;
+                sum = mn;
+            }
+            sum += mn;
+        }
+    }
+    while(!pq.empty()){
+        int mn = pq.top();
+        pq.pop();
+        if(sum < mn){
+            result += mn - sum;
+            sum = mn;
+        }
+        sum += mn;
+    }
+    fout << result;
+}
